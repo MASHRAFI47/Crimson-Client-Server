@@ -44,9 +44,9 @@ async function run() {
             res.send(result)
         })
 
-        app.put('/rooms/:id', async(req, res) => {
+        app.put('/rooms/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const options = { upsert: true };
             const roomBody = req.body;
             console.log(roomBody)
@@ -55,34 +55,48 @@ async function run() {
 
 
         //roomBookings
-        app.get('/roomBookings', async(req, res) => {
+        app.get('/roomBookings', async (req, res) => {
             const result = await roomBookings.find().toArray()
             res.send(result)
         })
 
-        app.get('/roomBookings/:id', async(req, res) => {
+        app.get('/roomBookings/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await roomBookings.findOne(query);
             res.send(result)
         })
 
+        app.patch('/roomBookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const roomBody = req.body;
+            const updateDoc = {
+                $set: {
+                    date: roomBody.startDate
+                },
+            };
+            const result = await roomBookings.updateOne(query, updateDoc, options)
+            res.send(result)
+        })
 
-        app.post('/roomBookings', async(req, res) => {
+
+        app.post('/roomBookings', async (req, res) => {
             const room = req.body;
             const result = await roomBookings.insertOne(room)
             res.send(result)
         })
 
 
-        app.get('/myBookings/:email', async(req, res) => {
-            const result = await roomBookings.find({userEmail: req.params.email}).toArray();
+        app.get('/myBookings/:email', async (req, res) => {
+            const result = await roomBookings.find({ userEmail: req.params.email }).toArray();
             res.send(result)
         })
 
-        app.delete('/roomBookings/:id', async(req, res) => {
+        app.delete('/roomBookings/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await roomBookings.deleteOne(query);
             res.send(result)
         })
@@ -91,13 +105,13 @@ async function run() {
 
         //review
 
-        app.get('/reviews', async(req, res) => {
-            const result = await reviewRooms.find().sort({comment: 1}).toArray();
+        app.get('/reviews', async (req, res) => {
+            const result = await reviewRooms.find().sort({ comment: 1 }).toArray();
             res.send(result)
         })
 
 
-        app.post('/reviews', async(req, res) => {
+        app.post('/reviews', async (req, res) => {
             const roomReview = req.body;
             const result = await reviewRooms.insertOne(roomReview);
             res.send(result)
