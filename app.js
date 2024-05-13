@@ -30,6 +30,7 @@ async function run() {
 
         const roomsCollection = client.db("crimsonSuite").collection("rooms");
         const roomBookings = client.db("crimsonSuite").collection("roomBookings");
+        const reviewRooms = client.db("crimsonSuite").collection("reviewRooms");
 
         app.get('/rooms', async (req, res) => {
             const result = await roomsCollection.find().toArray()
@@ -43,14 +44,48 @@ async function run() {
             res.send(result)
         })
 
+        app.put('/rooms/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const options = { upsert: true };
+            const roomBody = req.body;
+            console.log(roomBody)
+        })
+
+
+        app.get('/roomBookings/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await roomBookings.findOne(query);
+            res.send(result)
+        })
+
+
         app.post('/roomBookings', async(req, res) => {
             const room = req.body;
             const result = await roomBookings.insertOne(room)
             res.send(result)
         })
 
-        app.get('/roomBookings/:email', async(req, res) => {
+
+        app.get('/myBookings/:email', async(req, res) => {
             const result = await roomBookings.find({userEmail: req.params.email}).toArray();
+            res.send(result)
+        })
+
+        app.delete('/roomBookings/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await roomBookings.deleteOne(query);
+            res.send(result)
+        })
+
+
+
+        //review
+        app.post('/reviews', async(req, res) => {
+            const roomReview = req.body;
+            const result = await reviewRooms.insertOne(roomReview);
             res.send(result)
         })
 
