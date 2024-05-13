@@ -53,6 +53,13 @@ async function run() {
         })
 
 
+
+        //roomBookings
+        app.get('/roomBookings', async(req, res) => {
+            const result = await roomBookings.find().toArray()
+            res.send(result)
+        })
+
         app.get('/roomBookings/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id: new ObjectId(id)};
@@ -83,6 +90,13 @@ async function run() {
 
 
         //review
+
+        app.get('/reviews', async(req, res) => {
+            const result = await reviewRooms.find().sort({comment: 1}).toArray();
+            res.send(result)
+        })
+
+
         app.post('/reviews', async(req, res) => {
             const roomReview = req.body;
             const result = await reviewRooms.insertOne(roomReview);
