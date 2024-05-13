@@ -29,6 +29,7 @@ async function run() {
         await client.connect();
 
         const roomsCollection = client.db("crimsonSuite").collection("rooms");
+        const roomBookings = client.db("crimsonSuite").collection("roomBookings");
 
         app.get('/rooms', async (req, res) => {
             const result = await roomsCollection.find().toArray()
@@ -39,6 +40,17 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await roomsCollection.findOne(query)
+            res.send(result)
+        })
+
+        app.post('/roomBookings', async(req, res) => {
+            const room = req.body;
+            const result = await roomBookings.insertOne(room)
+            res.send(result)
+        })
+
+        app.get('/roomBookings/:email', async(req, res) => {
+            const result = await roomBookings.find({userEmail: req.params.email}).toArray();
             res.send(result)
         })
 
