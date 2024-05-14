@@ -11,7 +11,7 @@ app.use(cookieParser())
 
 //cors
 const corsOptions = {
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://crimson-suite-server.vercel.app/'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://crimson-suite-server.vercel.app'],
     credentials: true,
     optionSuccessStatus: true
 }
