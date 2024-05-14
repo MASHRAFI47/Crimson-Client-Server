@@ -1,14 +1,47 @@
 const express = require("express");
 const app = express();
+const jwt = require("jsonwebtoken")
+const cookieParser = require('cookie-parser')
 
 require('dotenv').config();
 
-const cors = require("cors");
-app.use(cors())
 
+//cookie
+app.use(cookieParser())
+
+//cors
+const corsOptions = {
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    credentials: true,
+    optionSuccessStatus: true
+}
+
+const cors = require("cors");
+app.use(cors(corsOptions))
+
+//form urlencoded
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
+
+
+const verifyToken = (req, res, next) => {
+    const token = req.cookies?.token;
+    if (!token) {
+        return res.status(401).send({ message: "Unauthorized Access" })
+    }
+    if (token) {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(401).send({ message: "Unauthorized Access" })
+            }
+            req.user = decoded
+
+            next()
+        })
+    }
+
+}
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -44,7 +77,7 @@ async function run() {
             res.send(result)
         })
 
-        app.put('/rooms/:id', async (req, res) => {
+        app.put('/rooms/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const options = { upsert: true };
@@ -67,7 +100,7 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/roomBookings/:id', async (req, res) => {
+        app.patch('/roomBookings/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const options = { upsert: true };
@@ -89,12 +122,18 @@ async function run() {
         })
 
 
-        app.get('/myBookings/:email', async (req, res) => {
-            const result = await roomBookings.find({ userEmail: req.params.email }).toArray();
+        app.get('/myBookings/:email', verifyToken, async (req, res) => {
+            const tokenEmail = req.user?.email;
+            const email = req.params?.email
+            if (tokenEmail !== email) {
+                return res.status(403).send({ message: "Forbidden Access" })
+            }
+
+            const result = await roomBookings.find({ userEmail: email }).toArray();
             res.send(result)
         })
 
-        app.delete('/roomBookings/:id', async (req, res) => {
+        app.delete('/roomBookings/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await roomBookings.deleteOne(query);
@@ -115,6 +154,28 @@ async function run() {
             const roomReview = req.body;
             const result = await reviewRooms.insertOne(roomReview);
             res.send(result)
+        })
+
+
+
+        //jwt
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? "none" : 'strict'
+            }).send({ success: true })
+        })
+
+        app.get('/logout', async (req, res) => {
+            res.clearCookie("token", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? "none" : 'strict',
+                maxAge: 0
+            }).send({ success: true })
         })
 
 
